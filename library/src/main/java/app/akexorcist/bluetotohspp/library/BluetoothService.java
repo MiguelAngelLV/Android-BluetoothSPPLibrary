@@ -356,8 +356,8 @@ public class BluetoothService {
             while (true) {
                 try {
                     int data = mmInStream.read();
-                    if(data == 0x0A) { 
-                    } else if(data == 0x0D) {
+                    arr_byte.add(data);
+                    if(arr_byte.size() > 127) {
                         buffer = new byte[arr_byte.size()];
                         for(int i = 0 ; i < arr_byte.size() ; i++) {
                             buffer[i] = arr_byte.get(i).byteValue();
@@ -366,9 +366,8 @@ public class BluetoothService {
                         mHandler.obtainMessage(BluetoothState.MESSAGE_READ
                                 , buffer.length, -1, buffer).sendToTarget();
                         arr_byte = new ArrayList<Integer>();
-                    } else {
-                        arr_byte.add(data);
-                    }
+                    } 
+                    
                 } catch (IOException e) {
                     connectionLost();
                     // Start the service over to restart listening mode
