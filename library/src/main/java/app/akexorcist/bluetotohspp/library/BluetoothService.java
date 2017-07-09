@@ -16,12 +16,6 @@
 
 package app.akexorcist.bluetotohspp.library;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.UUID;
-
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,6 +26,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.UUID;
 
 @SuppressLint("NewApi")
 public class BluetoothService {
@@ -350,23 +350,39 @@ public class BluetoothService {
 
         public void run() {
             byte[] buffer;
-            ArrayList<Integer> arr_byte = new ArrayList<Integer>();
+            ArrayList<Integer> arr_byte = new ArrayList<Integer>(5000);
 
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
                     int data = mmInStream.read();
                     arr_byte.add(data);
-                    if(arr_byte.size() > 127) {
-                        buffer = new byte[arr_byte.size()];
-                        for(int i = 0 ; i < arr_byte.size() ; i++) {
-                            buffer[i] = arr_byte.get(i).byteValue();
+
+                    if (data == 's') {
+                        data = mmInStream.read();
+                        arr_byte.add(data);
+
+                        if (data == 't') {
+                            data = mmInStream.read();
+                            arr_byte.add(data);
+
+                            if (data == 'p') {
+                                buffer = new byte[arr_byte.size()];
+                                for(int i = 0 ; i < arr_byte.size() ; i++) {
+                                    buffer[i] = arr_byte.get(i).byteValue();
+                                }
+                                // Send the obtained bytes to the UI Activity
+                                mHandler.obtainMessage(BluetoothState.MESSAGE_READ, buffer.length, -1, buffer).sendToTarget();
+                                arr_byte.clear();
+
+                            }
+
                         }
-                        // Send the obtained bytes to the UI Activity
-                        mHandler.obtainMessage(BluetoothState.MESSAGE_READ
-                                , buffer.length, -1, buffer).sendToTarget();
-                        arr_byte = new ArrayList<Integer>();
-                    } 
+
+                    }
+
+
+
                     
                 } catch (IOException e) {
                     connectionLost();
